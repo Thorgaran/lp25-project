@@ -8,22 +8,33 @@ int append_subdir(s_directory *child, s_directory *parent)
 	child->next_dir = NULL;
 	child->subdirs = NULL;
 	
-	//Adding child to parent subdirs if it's the first one
+	//Case where this is the first subdir of the parent
 	if(parent->subdirs == NULL)
 	{
 		parent->subdirs = (s_directory*)malloc(sizeof(s_directory));
+		if(parent->subdirs == NULL)
+		{
+			fprintf(stderr,"Error : Memory not available !");
+			return 1;
+		}
 		parent->subdirs = child;
 		return 0;
 	}
 	
-	//Find penultimate dir
+	//Find last dir
 	s_directory *temp = parent->subdirs;
 	while(temp->next_dir != NULL)
 	{
 		temp = temp->next_dir;
 	}
 	
+	//Linking last dir to the child
 	temp->next_dir = (s_directory*)malloc(sizeof(s_directory));
+	if(temp->next_dir == NULL)
+	{
+			fprintf(stderr,"Error : Memory not available !");
+			return 1;
+	}
 	temp->next_dir = child;
 	
 	return 0;
@@ -34,21 +45,33 @@ int append_file(s_file *child, s_directory *parent)
 	//Setting initial child's pointer
 	child->next_file = NULL;
 	
-	//Adding child to parent files if it's the first one
+	//Case where this is the first file of parent
 	if(parent->files == NULL)
 	{
 		parent->files = (s_file*)malloc(sizeof(s_file));
+		if(parent->files == NULL)
+		{
+			fprintf(stderr,"Error : Memory not available !");
+			return 1;
+		}
 		parent->files = child;
+		return 0;
 	}
 	
-	//Finding penultimate file
+	//Finding last file
 	s_file *temp = parent->files;
 	while(temp->next_file != NULL)
 	{
 		temp = temp->next_file;
 	}
 	
+	//Linking last file to the child
 	temp->next_file = (s_file*)malloc(sizeof(s_file));
+	if(temp->next_file == NULL)
+	{
+		fprintf(stderr,"Error : Memory not available !");
+		return 1;
+	}
 	temp->next_file=child;
 	
 	return 0;
@@ -77,7 +100,7 @@ void clear_subdirs(s_directory *parent)
 		clear_files(current_dir);
 		clear_subdirs(current_dir);
 		
-		//Switch to the next subdir after free
+		//Switch to the next subdir after freeing memory
 		parent->subdirs = parent->subdirs->next_dir;
 		free(current_dir);
 		current_dir = parent->subdirs;
