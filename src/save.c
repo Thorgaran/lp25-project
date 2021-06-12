@@ -40,7 +40,7 @@ int save_to_file(s_directory *root, char *path_to_target)
 		return -1;
 	}
 	
-	process_dir(root, file_targeted);
+	process_dir(root, file_targeted,0);
 	
 	fclose(file_targeted);
 	closedir(target);
@@ -93,7 +93,7 @@ int save_other_file(void *o_file_data,FILE *file_to_target)
 	char buffer[80];
 	strftime(buffer, sizeof(buffer), "%F-%T", timeinfo);
 
-	if (fprintf(file_to_target,"%d\t%s\t%s\n",2,buffer,file->name) == 0)
+	if (fprintf(file_to_target,"\t%d\t%s\t%s\n",2,buffer,file->name) == 0)
 	{
 		return -1;
 	} 
@@ -119,13 +119,18 @@ int default_file_name(char *file_name)
 	return 0;
 }
 
-int process_dir(s_directory *root, FILE *file_to_target)
+int process_dir(s_directory *root, FILE *file_to_target, int depth)
 {
 	s_directory temp = root;
 
+	for (int i=0; i<depth; i++)
+	{
+		fprintf(file_to_target,"\t");
+	} 
+
 	if (save_directory(&temp,file_to_target) != 0)
 	{
-		printf("Error : Missing directory information");
+		printf("Error : Missing directory information\n");
 		return -1;
 	}	
 
@@ -136,7 +141,7 @@ int process_dir(s_directory *root, FILE *file_to_target)
 		{
 			if (save_reg_file(&temp->files,file_to_target) != 0)
 			{
-				printf("Error : Missing file information");
+				printf("Error : Missing file information\n");
 				return -1;
 			}	
 		}
@@ -144,7 +149,7 @@ int process_dir(s_directory *root, FILE *file_to_target)
 		{
 			if (save_other_file(&temp->files,file_to_target) != 0)
 			{
-				printf("Error : Missing file information");
+				printf("Error : Missing file information\n");
 				return -1;
 			}	
 		} 
@@ -152,7 +157,7 @@ int process_dir(s_directory *root, FILE *file_to_target)
 	//Process all the subdirs
 	while (temp->subdirs != NULL)
 	{
-		if (process_dir(temp->subdirs, file_to_target) != 0)
+		if (process_dir(temp->subdirs, file_to_target, depth+1) != 0)
 		{
 			printf("Error : Couldn't reach subdirectory\n");
 			return -1;
@@ -165,7 +170,7 @@ int process_dir(s_directory *root, FILE *file_to_target)
 	//Go to next dir
 	if (temp->next_dir != NULL)
 	{
-		if (process_dir(temp->next_dir, file_to_target) != 0)
+		if (process_dir(temp->next_dir, file_to_target, depth) != 0)
 		{
 			printf("Error : Couldn't reach next directory\n");
 			return -1;
