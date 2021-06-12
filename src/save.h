@@ -5,10 +5,12 @@
 #include <stdio.h>
 
 int save_to_file(s_directory *root, char *path_to_target);
-int save_directory(s_directory *dir,FILE *file_to_target);
-int save_file(s_file *file,FILE *file_to_target);
-int puts_type_value(void *file,FILE *file_to_target);
+int save_directory(void *dir_data,FILE *file_to_target);
+int save_reg_file(void *r_file_data,FILE *file_to_target);
+int save_other_file(void *o_file_data,FILE *file_to_target);
 
 int default_file_name(char *file_name);
+
+int process_dir(s_directory *root, FILE *file_to_target);
 
 #endif //_SAVE_H_
