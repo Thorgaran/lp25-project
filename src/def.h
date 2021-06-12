@@ -6,7 +6,7 @@
 //#include <openssl/md5.h>
 #include <stdint.h>
 
-typedef enum {DIRECTORY, REGULAR_FILE, OTHER_TYPE} e_type;
+typedef enum {DIRECTORY=0, REGULAR_FILE=1, OTHER_TYPE=2} e_type;
 
 typedef struct _file {
     e_type file_type;
