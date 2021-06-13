@@ -1,10 +1,12 @@
-#ifndef _DEF_H_
-#define _DEF_H_
+#ifndef _CORE_H_
+#define _CORE_H_
 
 #include <linux/limits.h>
 #include <time.h>
 //#include <openssl/md5.h>
 #include <stdint.h>
+
+// This file contains the few things that are needed by the whole program
 
 typedef enum {DIRECTORY=0, REGULAR_FILE=1, OTHER_TYPE=2} e_type;
 
@@ -25,5 +27,6 @@ typedef struct _directory {
     struct _directory *next_dir;
 } s_directory;
 
+char *merge_path(char *path, char* file_name);
 
-#endif // _DEF_H_
+#endif // _CORE_H_

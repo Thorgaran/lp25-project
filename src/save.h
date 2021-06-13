@@ -1,16 +1,16 @@
 #ifndef _SAVE_H_
 #define _SAVE_H_
 
-#include "def.h"
+#include "core.h"
 #include <stdio.h>
 
-int save_to_file(s_directory *root, char *path_to_target);
-int save_directory(void *dir_data,FILE *file_to_target);
-int save_reg_file(void *r_file_data,FILE *file_to_target);
-int save_other_file(void *o_file_data,FILE *file_to_target);
+int save_to_file(s_directory *root, char *output_path);
+int save_directory(s_directory *dir, FILE *output_file);
+int save_reg_file(s_file *file, FILE *output_file);
+int save_other_file(s_file *file, FILE *output_file);
 
 int default_file_name(char *file_name);
 
-int process_save_dir(s_directory *root, FILE *file_to_target, int depth);
+int process_save_dir(s_directory *parent, FILE *output_file, int depth);
 
 #endif //_SAVE_H_

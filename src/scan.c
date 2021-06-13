@@ -1,5 +1,3 @@
-#include "scan.h"
-#include "tree.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,17 +6,22 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include "scan.h"
+#include "tree.h"
 
 s_directory *process_dir(char *path)
-{
-	
+{	
 	s_directory *resulting_dir=(s_directory*)malloc(sizeof(s_directory));
 	
+	//Setting initial child's pointers
+	resulting_dir->next_dir = NULL;
+	resulting_dir->subdirs = NULL;
+	
 	//Saving basic information
-	strcpy(resulting_dir->name,basename(path));
+	strcpy(resulting_dir->name, basename(path));
 	
 	struct stat st_dir;
-	if(stat(path,&st_dir)==-1)
+	if(stat(path, &st_dir)==-1)
 	{
 		fprintf(stderr, "Error: stat() failed for %s! %s\n", path, strerror(errno));
 		exit(EXIT_FAILURE);
@@ -41,7 +44,7 @@ s_directory *process_dir(char *path)
 		if(strcmp(dirent->d_name,".")!=0 && strcmp(dirent->d_name,"..")!=0)
 		{
 			//Storing path in order to free it after
-			char *newPath = mergePath(path,dirent->d_name);
+			char *newPath = merge_path(path,dirent->d_name);
 			
 			struct stat st_subdir;
 			if(stat(newPath,&st_subdir)==-1)
@@ -82,7 +85,7 @@ s_file *process_file(char *path)
 	s_file *resulting_file=(s_file*)malloc(sizeof(s_file));
 	
 	//Saving basic information
-	strcpy(resulting_file->name,basename(path));
+	strcpy(resulting_file->name, basename(path));
 	
 	struct stat st_file;
 	if(stat(path,&st_file)==-1)
@@ -105,24 +108,4 @@ s_file *process_file(char *path)
 	// MD5 todo
 
 	return resulting_file;
-}
-
-
-char *mergePath(char *path, char* fileName)
-{
-	//+2 because we will add "/" between and "\0" at the end
-	char *newPath = (char *)malloc(sizeof(char)*(strlen(path)+strlen(fileName)+2));
-	
-	if(newPath==NULL)
-	{
-		fprintf(stderr,"Error: Memory not available!");
-		exit(EXIT_FAILURE);
-	}
-	
-	strcpy(newPath,path);
-	strcat(newPath,"/");
-	strcat(newPath,fileName);
-	//strcat adds automatically the null terminated byte 
-	
-	return newPath;
 }

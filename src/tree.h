@@ -1,7 +1,7 @@
 #ifndef _TREE_H_
 #define _TREE_H_
 
-#include "def.h"
+#include "core.h"
 
 int append_subdir(s_directory *child, s_directory *parent);
 int append_file(s_file *child, s_directory *parent);

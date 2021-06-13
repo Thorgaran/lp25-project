@@ -4,10 +4,6 @@
 
 int append_subdir(s_directory *child, s_directory *parent)
 {
-	//Setting initial child's pointers
-	child->next_dir = NULL;
-	child->subdirs = NULL;
-	
 	//Case where this is the first subdir of the parent
 	if(parent->subdirs == NULL)
 	{
@@ -54,7 +50,7 @@ int append_file(s_file *child, s_directory *parent)
 }
 
 
-void  clear_files(s_directory *parent)
+void clear_files(s_directory *parent)
 {
 	s_file *current_file = parent->files;
 	
