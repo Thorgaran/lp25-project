@@ -11,6 +11,6 @@ int save_other_file(void *o_file_data,FILE *file_to_target);
 
 int default_file_name(char *file_name);
 
-int process_dir(s_directory *root, FILE *file_to_target, int depth);
+int process_save_dir(s_directory *root, FILE *file_to_target, int depth);
 
 #endif //_SAVE_H_

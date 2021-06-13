@@ -12,27 +12,37 @@
 int save_to_file(s_directory *root, char *path_to_target)
 {
 	int errno;
-	DIR *target = opendir(".filescanner");
+	char file_name[NAME_LENGTH];
 	
-	//Case where ".filescaner" doesnt exist
-	if(target==NULL && errno == ENOENT)
+	if (strcmp(path_to_target,"no file specified") == 0)
 	{
-		if(mkdir(".filescanner",0755)==-1)
+
+		DIR *target = opendir(".filescanner");
+
+		//Case where ".filescaner" doesnt exist
+		if(target==NULL && errno == ENOENT)
 		{
-			fprintf(stderr,"Error : Couldn't create directory !");
+			if(mkdir(".filescanner",0755)==-1)
+			{
+				fprintf(stderr,"Error : Couldn't create directory !");
+				return -1;
+			}
+			target = opendir(".filescanner");
+		}
+		
+		//Generating the default file name to target
+		
+		if(default_file_name(file_name)==-1)
+		{
+			fprintf(stderr,"Error : Failure during generation of default file name !");
 			return -1;
 		}
-		target = opendir(".filescanner");
 	}
-	
-	//Generating the default file name to target
-	char file_name[NAME_LENGTH];
-	if(default_file_name(file_name)==-1)
+	else
 	{
-		fprintf(stderr,"Error : Failure during generation of default file name !");
-		return -1;
-	}
-	
+		strcpy(file_name, path_to_target);
+	}  
+		
 	//Creating the file to target
 	FILE *file_targeted = NULL;
 	file_targeted = fopen(file_name,"w");
@@ -42,7 +52,7 @@ int save_to_file(s_directory *root, char *path_to_target)
 		return -1;
 	}
 	
-	process_dir(root, file_targeted,0);
+	process_save_dir(root, file_targeted, 0);
 	
 	fclose(file_targeted);
 	closedir(target);
@@ -121,7 +131,7 @@ int default_file_name(char *file_name)
 	return 0;
 }
 
-int process_dir(s_directory *root, FILE *file_to_target, int depth)
+int process_save_dir(s_directory *root, FILE *file_to_target, int depth)
 {
 	s_directory temp = root;
 
@@ -160,7 +170,7 @@ int process_dir(s_directory *root, FILE *file_to_target, int depth)
 	//Process all the subdirs
 	while (temp->subdirs != NULL)
 	{
-		if (process_dir(temp->subdirs, file_to_target, depth+1) != 0)
+		if (process_save_dir(temp->subdirs, file_to_target, depth+1) != 0)
 		{
 			printf("Error : Couldn't reach subdirectory\n");
 			return -1;
@@ -173,7 +183,7 @@ int process_dir(s_directory *root, FILE *file_to_target, int depth)
 	//Go to next dir
 	if (temp->next_dir != NULL)
 	{
-		if (process_dir(temp->next_dir, file_to_target, depth) != 0)
+		if (process_save_dir(temp->next_dir, file_to_target, depth) != 0)
 		{
 			printf("Error : Couldn't reach next directory\n");
 			return -1;
