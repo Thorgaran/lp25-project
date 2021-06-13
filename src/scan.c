@@ -6,6 +6,7 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 
 s_directory *process_dir(char *path)
@@ -19,35 +20,33 @@ s_directory *process_dir(char *path)
 	struct stat st_dir;
 	if(stat(path,&st_dir)==-1)
 	{
-		fprintf(stderr,"Error : stat() failed !\n");
+		fprintf(stderr, "Error: stat() failed for %s! %s\n", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	else
-	{
-		resulting_dir->mod_time = st_dir.st_mtime;
-	}
-	
 
+	resulting_dir->mod_time = st_dir.st_mtime;
+	
 	//Processing this dir's content recursively
 	DIR *descripteur = opendir(path);
-	if(!descripteur)
+	if(descripteur == NULL)
 	{
-		perror("Error ");
+		fprintf(stderr, "Error while opening the directory %s. %s\n", path, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	
 	struct dirent *dirent;
 	dirent = readdir(descripteur);
 	while ( dirent!=NULL ) {
+		//Ignore current and parent dirs
 		if(strcmp(dirent->d_name,".")!=0 && strcmp(dirent->d_name,"..")!=0)
 		{
 			//Storing path in order to free it after
-			char * newPath = mergePath(path,dirent->d_name);
+			char *newPath = mergePath(path,dirent->d_name);
 			
 			struct stat st_subdir;
 			if(stat(newPath,&st_subdir)==-1)
 			{
-				fprintf(stderr,"Error : stat() failed !\n");
+				fprintf(stderr, "Error: stat() failed for %s! %s\n", path, strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 			else
@@ -66,7 +65,13 @@ s_directory *process_dir(char *path)
 		}
 		dirent = readdir(descripteur);
 	}
-	closedir(descripteur); 
+
+	if (closedir(descripteur) == -1)
+	{
+		fprintf(stderr, "Error while closing the directory %s. %s\n", path, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
 	return resulting_dir;
 }
 
@@ -82,41 +87,42 @@ s_file *process_file(char *path)
 	struct stat st_file;
 	if(stat(path,&st_file)==-1)
 	{
-		fprintf(stderr,"Error : stat() failed !\n");
+		fprintf(stderr, "Error: stat() failed for %s! %s\n", path, strerror(errno));
 		exit(EXIT_FAILURE);
+	}
+
+	resulting_file->mod_time = st_file.st_mtime;
+	resulting_file->file_size = st_file.st_size;
+	if(S_ISREG(st_file.st_mode))
+	{
+		resulting_file->file_type = REGULAR_FILE;
 	}
 	else
 	{
-		resulting_file->mod_time = st_file.st_mtime;
-		resulting_file->file_size = st_file.st_size;
-		if(S_ISREG(st_file.st_mode))
-		{
-			resulting_file->file_type = REGULAR_FILE;
-		}
-		else
-		{
-			resulting_file->file_type = OTHER_TYPE;
-		}
+		resulting_file->file_type = OTHER_TYPE;
 	}
+
+	// MD5 todo
+
 	return resulting_file;
 }
 
 
-char *mergePath(char *path,char* fileName)
+char *mergePath(char *path, char* fileName)
 {
 	//+2 because we will add "/" between and "\0" at the end
 	char *newPath = (char *)malloc(sizeof(char)*(strlen(path)+strlen(fileName)+2));
 	
 	if(newPath==NULL)
 	{
-		fprintf(stderr,"Error : Memory not available !");
+		fprintf(stderr,"Error: Memory not available!");
 		exit(EXIT_FAILURE);
 	}
 	
 	strcpy(newPath,path);
 	strcat(newPath,"/");
 	strcat(newPath,fileName);
-	//strcat add automatically the null terminated byte 
+	//strcat adds automatically the null terminated byte 
 	
 	return newPath;
 }
