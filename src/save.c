@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <errno.h>
+#include <inttypes.h>
+
 
 #define NAME_LENGTH 25
 
@@ -152,7 +154,8 @@ int process_dir(s_directory *root, FILE *file_to_target, int depth)
 				printf("Error : Missing file information\n");
 				return -1;
 			}	
-		} 
+		}
+		temp->files = temp->files->next_file;
 	}
 	//Process all the subdirs
 	while (temp->subdirs != NULL)
