@@ -3,7 +3,7 @@
 
 #include <linux/limits.h>
 #include <time.h>
-//#include <openssl/md5.h>
+#include <openssl/md5.h>
 #include <stdint.h>
 
 // This file contains the few things that are needed by the whole program
@@ -15,7 +15,7 @@ typedef struct _file {
     char name[NAME_MAX+1];
     time_t mod_time;
     uint64_t file_size;
-    //u_char md5sum[MD5_DIGEST_LENGTH];
+    unsigned char md5sum[MD5_DIGEST_LENGTH];
     struct _file *next_file;
 } s_file;
 

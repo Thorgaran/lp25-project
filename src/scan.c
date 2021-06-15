@@ -8,6 +8,7 @@
 
 #include "scan.h"
 #include "tree.h"
+#include "md5sum.h"
 
 s_directory *process_dir(char *path)
 {	
@@ -64,7 +65,6 @@ s_directory *process_dir(char *path)
 					append_file(process_file(newPath),resulting_dir);
 				}
 			}
-			printf("%s\n", dirent->d_name);
 			free(newPath);
 		}
 		dirent = readdir(descripteur);
@@ -106,7 +106,8 @@ s_file *process_file(char *path)
 		resulting_file->file_type = OTHER_TYPE;
 	}
 
-	// MD5 todo
+	//Compute md5 if the user wants to
+	compute_md5(path, resulting_file->md5sum);
 
 	return resulting_file;
 }

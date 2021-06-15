@@ -10,7 +10,8 @@
 
 #define NAME_LENGTH 25
 
-int save_to_file(s_directory *root, char *output_path)
+// md5_enabled is set to 1 if true, anything else otherwise
+int save_to_file(s_directory *root, char *output_path, int md5_enabled)
 {	
 	// If no output path is specified, fill out output_path with default value
 	if (output_path == NULL)
@@ -82,7 +83,7 @@ int save_to_file(s_directory *root, char *output_path)
 	// strcpy(relative_path, "");
 	
 	// Start recursive tree runthrough
-	if (process_save_dir(root, output_file, "", 0) != 0)
+	if (process_save_dir(root, output_file, "", md5_enabled, 0) != 0)
 	{
 		fprintf(stderr, "Error: failed recursive tree runthrough");
 		return -1;
@@ -111,7 +112,7 @@ int save_directory(s_directory *dir, FILE *output_file, char *relative_path)
 	return 0;
 }
 
-int save_reg_file(s_file *file, FILE *output_file)
+int save_reg_file(s_file *file, FILE *output_file, int md5_enabled)
 {	
 	// Getting time informations
 	struct tm * timeinfo;
@@ -120,11 +121,27 @@ int save_reg_file(s_file *file, FILE *output_file)
 	char date[80];
 	strftime(date, sizeof(date), "%F-%T", timeinfo);
 
-	// if (fprintf(output_file,"\t%d\t%s\t" PRIu64 "\t%s\t%s\n",1,buffer,file->file_size,file->md5sum,file->name) == 0)
-	if (fprintf(output_file, "1\t%s\t%ld\t%s\n", date, file->file_size, file->name) == 0)
+	// Print first half before md5sum
+	if (fprintf(output_file, "1\t%s\t%ld", date, file->file_size) == 0)
 	{
 		return -1;
-	} 
+	}
+
+	// Print md5sum if enabled
+	if (md5_enabled == 1) {
+		if (fprintf(output_file, "\t") == 0) { return -1; }
+
+		for(int i=0; i<MD5_DIGEST_LENGTH; i++)
+		{
+        	if (fprintf(output_file, "%02x", file->md5sum[i]) == 0) { return -1; }
+		}
+	}
+
+	// Print second half after md5sum
+	if (fprintf(output_file, "\t%s\n", file->name) == 0)
+	{
+		return -1;
+	}
 	return 0;
 }
 
@@ -174,7 +191,7 @@ void indent(FILE *output_file, int depth)
 	fprintf(output_file, "|");
 }
 
-int process_save_dir(s_directory *parent, FILE *output_file, char* relative_path, int depth)
+int process_save_dir(s_directory *parent, FILE *output_file, char* relative_path, int md5_enabled, int depth)
 {
 	// Append parent name to relative path
 	char *new_relative_path = merge_path(relative_path, parent->name);
@@ -195,7 +212,7 @@ int process_save_dir(s_directory *parent, FILE *output_file, char* relative_path
 		int return_value;
 		if (current_file->file_type == REGULAR_FILE)
 		{
-			return_value = save_reg_file(current_file, output_file);
+			return_value = save_reg_file(current_file, output_file, md5_enabled);
 		}
 		else
 		{
@@ -211,15 +228,13 @@ int process_save_dir(s_directory *parent, FILE *output_file, char* relative_path
 		current_file = current_file->next_file;
 	}
 
-	
-
 	// Process all the subdirs recursively
 	s_directory *current_subdir = parent->subdirs;
 	while (current_subdir != NULL)
 	{
 		indent(output_file, depth+1);
 
-		if (process_save_dir(current_subdir, output_file, new_relative_path, depth+1) != 0) { return -1; }
+		if (process_save_dir(current_subdir, output_file, new_relative_path, md5_enabled, depth+1) != 0) { return -1; }
 
 		current_subdir = current_subdir->next_dir;
 	}

@@ -9,14 +9,14 @@ OBJS := $(SRCS:.c=.o)
 ifeq ($(DEBUG),true)
 ifeq ($(PROFILING),true)
 	CFLAGS := -g -pg -Wall -Werror
-	LFLAGS := -pg
+	LFLAGS := -lcrypto -pg
 else
 	CFLAGS := -g -Wall -Werror
-	LFLAGS :=
+	LFLAGS := -lcrypto
 endif
 else
 	CFLAGS := -Wall -Werror
-	LFLAGS :=
+	LFLAGS := -lcrypto
 endif
 
 repo_analyzer: $(OBJS)

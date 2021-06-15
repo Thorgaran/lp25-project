@@ -11,6 +11,7 @@
 int main (int argc, char* argv[]) {
     char *input_path = NULL;
     char *output_path = NULL;
+    int md5_enabled = 0;
 
     int opt = 0;
     while((opt = getopt(argc, argv, "o:si:")) != -1) {
@@ -28,7 +29,7 @@ int main (int argc, char* argv[]) {
                 break;
 
             case 's':
-                //enable md5
+                md5_enabled = 1;
                 break;
 
             case 'i':
@@ -60,17 +61,13 @@ int main (int argc, char* argv[]) {
         strcpy(input_path, ".");
     }
 
-    printf("Input: %s\n", input_path);
-    printf("Output: %s\n", output_path);
-
     // Read directory structure and save it in tree structure
     s_directory *dir = process_dir(input_path);
-    printf("%s %ld\n", dir->name, dir->mod_time);
 
     free(input_path);
 
     // Save tree structure to file
-    if (save_to_file(dir, output_path) != 0) {
+    if (save_to_file(dir, output_path, md5_enabled) != 0) {
         fprintf(stderr, "Error: failed to save to file %s! %s\n", output_path, strerror(errno));
 		return EXIT_FAILURE;
     }
