@@ -76,9 +76,13 @@ int save_to_file(s_directory *root, char *output_path)
 		fprintf(stderr, "Error: Couldn't open file %s! %s\n", output_path, strerror(errno));
 		return -1;
 	}
+
+	// Empty string needs to be malloc-ed because it will be freed inside process_save_dir()
+	// char *relative_path = (char *)malloc(sizeof(char));
+	// strcpy(relative_path, "");
 	
 	// Start recursive tree runthrough
-	if (process_save_dir(root, output_file, 0) != 0)
+	if (process_save_dir(root, output_file, "", 0) != 0)
 	{
 		fprintf(stderr, "Error: failed recursive tree runthrough");
 		return -1;
@@ -91,7 +95,7 @@ int save_to_file(s_directory *root, char *output_path)
 	return 0;
 }
 
-int save_directory(s_directory *dir, FILE *output_file)
+int save_directory(s_directory *dir, FILE *output_file, char *relative_path)
 {
 	// Getting time information
 	struct tm * timeinfo;
@@ -100,7 +104,7 @@ int save_directory(s_directory *dir, FILE *output_file)
 	char date[80];
 	strftime(date, sizeof(date), "%F-%T", timeinfo);
 
-	if (fprintf(output_file, "0\t%s\t%s\n", date, dir->name) == 0)
+	if (fprintf(output_file, "0\t%s\t%s\n", date, relative_path) == 0)
 	{
 		return -1;
 	}
@@ -161,14 +165,22 @@ int default_file_name(char *file_name)
 	return 0;
 }
 
-int process_save_dir(s_directory *parent, FILE *output_file, int depth)
+void indent(FILE *output_file, int depth)
 {
 	for (int i=0; i<depth; i++)
 	{
 		fprintf(output_file, "\t");
 	}
+	fprintf(output_file, "|");
+}
 
-	if (save_directory(parent, output_file) != 0)
+int process_save_dir(s_directory *parent, FILE *output_file, char* relative_path, int depth)
+{
+	// Append parent name to relative path
+	char *new_relative_path = merge_path(relative_path, parent->name);
+
+	// Save parent information
+	if (save_directory(parent, output_file, new_relative_path) != 0)
 	{
 		fprintf(stderr, "Error: Missing directory information\n");
 		return -1;
@@ -178,10 +190,7 @@ int process_save_dir(s_directory *parent, FILE *output_file, int depth)
 	s_file *current_file = parent->files;
 	while(current_file != NULL)
 	{
-		for (int i=0; i<depth+1; i++)
-		{
-			fprintf(output_file, "\t");
-		}
+		indent(output_file, depth+1);
 
 		int return_value;
 		if (current_file->file_type == REGULAR_FILE)
@@ -202,39 +211,24 @@ int process_save_dir(s_directory *parent, FILE *output_file, int depth)
 		current_file = current_file->next_file;
 	}
 
-	// Process all the subdirs
+	
+
+	// Process all the subdirs recursively
 	s_directory *current_subdir = parent->subdirs;
 	while (current_subdir != NULL)
 	{
-		for (int i=0; i<depth+1; i++)
-		{
-			fprintf(output_file, "\t");
-		}
+		indent(output_file, depth+1);
 
-		if (save_directory(current_subdir, output_file) != 0)
-		{
-			fprintf(stderr, "Error: Missing directory information\n");
-			return -1;
-		}
-		
-		current_subdir = current_subdir->next_dir;
-	}
-
-	// Do it another time but recursively
-	current_subdir = parent->subdirs;
-	if (current_subdir != NULL) {
-		for (int i=0; i<depth+1; i++)
-		{
-			fprintf(output_file, "\t");
-		}
-		fprintf(output_file, "---------------------------------\n");
-	}
-	while (current_subdir != NULL)
-	{
-		if (process_save_dir(current_subdir, output_file, depth+1) != 0) { return -1; }
+		if (process_save_dir(current_subdir, output_file, new_relative_path, depth+1) != 0) { return -1; }
 
 		current_subdir = current_subdir->next_dir;
 	}
+
+	// Add separator for clarity
+	indent(output_file, depth+1);
+	fprintf(output_file, "---------------------------------\n");
+
+	free(new_relative_path);
 
 	return 0;
 }

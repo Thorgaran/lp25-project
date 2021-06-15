@@ -16,6 +16,7 @@ s_directory *process_dir(char *path)
 	//Setting initial child's pointers
 	resulting_dir->next_dir = NULL;
 	resulting_dir->subdirs = NULL;
+	resulting_dir->files = NULL;
 	
 	//Saving basic information
 	strcpy(resulting_dir->name, basename(path));

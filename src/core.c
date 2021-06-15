@@ -16,7 +16,9 @@ char *merge_path(char *path, char* file_name)
 	}
 	
 	strcpy(newPath, path);
-	strcat(newPath, "/");
+	if (strcmp(path, "") != 0) {
+		strcat(newPath, "/");
+	}
 	strcat(newPath, file_name);
 	//strcat adds automatically the null terminated byte 
 	
