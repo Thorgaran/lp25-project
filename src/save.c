@@ -104,7 +104,7 @@ int save_directory(s_directory *dir, FILE *output_file, char *relative_path)
 	char date[80];
 	strftime(date, sizeof(date), "%F-%T", timeinfo);
 
-	if (fprintf(output_file, "0\t%s\t%s\n", date, relative_path) == 0)
+	if (fprintf(output_file, "0\t%s\t%s/\n", date, relative_path) == 0)
 	{
 		return -1;
 	}
